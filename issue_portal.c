@@ -96,14 +96,14 @@ int application()
 
         printf("Do you want to enter another user? (y/n): ");
         scanf(" %c", &choice);
-        while (getchar() != '\n'); // clear input buffer
+        while (getchar() != '\n')
+            ; // clear input buffer
 
     } while (choice == 'y' || choice == 'Y');
 
     fclose(member);
     return 0;
 }
-
 
 // Verifies if a given ID exists in member.csv, otherwise offers membership
 int member_verification(char *id_verify)
@@ -119,62 +119,50 @@ int member_verification(char *id_verify)
         return 0;
     }
 
-    do
+    found = 0;
+    printf("Enter member ID to verify: ");
+    // fgets(id_verify, 200, stdin);
+    scanf("%s", id_verify);
+    remove_newLine(id_verify);
+
+    rewind(member);                    // move file pointer to start
+    fgets(data, sizeof(data), member); // Skip header
+
+    // Search through member records
+    while (fgets(data, sizeof(data), member))
     {
-        found = 0;
-        printf("Enter member ID to verify: ");
-        // fgets(id_verify, 200, stdin);
-        scanf("%s", id_verify);
-        remove_newLine(id_verify);
-
-        rewind(member);                    // move file pointer to start
-        fgets(data, sizeof(data), member); // Skip header
-
-        // Search through member records
-        while (fgets(data, sizeof(data), member))
+        char *name = strtok(data, ",");
+        char *user_id = strtok(NULL, ",");
+        if (user_id && strcmp(user_id, id_verify) == 0)
         {
-            char *name = strtok(data, ",");
-            char *user_id = strtok(NULL, ",");
-            if (user_id && strcmp(user_id, id_verify) == 0)
-            {
-                printf("Member found\n");
-                found = 1;
-                break;
-            }
+            printf("Member found\n");
+            found = 1;
+            break;
         }
+    }
 
-        // If not found, offer registration
-        if (!found)
-        {
-            printf("You have to buy membership to issue books\n\n");
-            printf("Do you want to buy membership (yes/no): ");
-            // fgets(choice, sizeof(choice), stdin);
-            scanf(" %c", &membership_choice);
-            // remove_newLine(choice);
-            if (membership_choice == 'y' || membership_choice == 'Y')
-            {
-                clear_input_buffer();
-                application();
-                return 1;
-            }
-            else
-            {
-                printf("Unable to issue a book !\n");
-                return 0;
-            }
-        }
-
-        // Ask if another verification is needed
-        printf("\nDo you want to verify another member (yes/no): ");
+    // If not found, offer registration
+    if (!found)
+    {
+        printf("You have to buy membership to issue books\n\n");
+        printf("Do you want to buy membership (yes/no): ");
         // fgets(choice, sizeof(choice), stdin);
-        // choice = fgetc(stdin);
-        scanf(" %c", &choice);
+        scanf(" %c", &membership_choice);
         // remove_newLine(choice);
+        if (membership_choice == 'y' || membership_choice == 'Y')
+        {
+            clear_input_buffer();
+            application();
+            return 1;
+        }
+        else
+        {
+            printf("Unable to issue a book !\n");
+            return 0;
+        }
+    }
 
-    } while (choice == 'y' || choice == 'Y');
-    if (choice == 'n' || choice == 'N')
-
-        fclose(member); // Close file
+    fclose(member); // Close file
     return 1;
 }
 
@@ -188,11 +176,12 @@ int issue()
     Date issue_date;
     char choice;
     char id_verify[200];
-    int is_verified;
+    int is_verified = 0;
+    int any_issue_done = 0; // Track if anything was issued at all
 
-    FILE *stock = fopen("books.csv", "r");      // List of books
-    FILE *issue_file = fopen("issue.csv", "a"); // Issued books
-    FILE *member = fopen("member.csv", "r");    // Member list
+    FILE *stock = fopen("books.csv", "r");
+    FILE *issue_file = fopen("issue.csv", "a");
+    FILE *member = fopen("member.csv", "r");
 
     if (!stock || !issue_file || !member)
     {
@@ -200,7 +189,7 @@ int issue()
         return 1;
     }
 
-    FILE *temp = fopen("temp.csv", "w"); // For rewriting remaining books
+    FILE *temp = fopen("temp.csv", "w");
     if (!temp)
     {
         printf("Unable to create temp file.\n");
@@ -209,14 +198,13 @@ int issue()
 
     do
     {
-        rewind(stock);                                  // Reset pointers
+        rewind(stock);
         rewind(member);
-        fgets(data_member, sizeof(data_member), member); // Skip member header
-        fgets(data_book, sizeof(data_book), stock);      // Skip book header
+        fgets(data_member, sizeof(data_member), member); // Skip headers
+        fgets(data_book, sizeof(data_book), stock);
 
         found = 0;
 
-        // Step 1: Verify Member
         printf("To issue a book, you have to be a member\n");
         printf("Enter your member ID: ");
         scanf("%s", id_verify);
@@ -226,11 +214,13 @@ int issue()
         if (!is_verified)
         {
             printf("Member verification failed.\n");
-            break;
+            printf("Do you want to try again? (y/n): ");
+            scanf(" %c", &choice);
+            continue;
         }
+
         printf("Member verified.\n");
 
-        // Step 2: Get Book ID
         printf("Enter book ID to issue: ");
         scanf("%s", id);
         remove_newLine(id);
@@ -250,7 +240,7 @@ int issue()
                 found = 1;
 
                 rewind(member);
-                fgets(data_member, sizeof(data_member), member); // Skip header
+                fgets(data_member, sizeof(data_member), member); // Skip header again
 
                 int user_found = 0;
                 while (fgets(data_member, sizeof(data_member), member))
@@ -263,28 +253,30 @@ int issue()
                         user_found = 1;
                         printf("Enter date of issue (DD MM YYYY): ");
                         scanf("%d %d %d", &issue_date.day, &issue_date.month, &issue_date.year);
-                        while (getchar() != '\n'); // Clear input buffer
+                        while (getchar() != '\n')
+                            ; // Clear input buffer
 
                         format_date(issue_date, date_str, sizeof(date_str));
 
                         printf("Book issued to: %s, %s\n", name, user_id);
                         fprintf(issue_file, "%s,%s,%s,%s\n", user_id, book_title, book_id, date_str);
+                        any_issue_done = 1; // Something was issued
                         break;
                     }
                 }
 
                 if (!user_found)
                 {
-                    printf("❌ Member ID not found in record even after verification.\n");
+                    printf("Member ID not found in record even after verification.\n");
                 }
             }
             else
             {
-                fputs(original_line, temp); // Keep unissued books
+                fputs(original_line, temp); // Keep book in temp
             }
         }
 
-        if (!found)
+        if (is_verified && !found)
         {
             printf("Book not found in stock.\n");
         }
@@ -299,26 +291,19 @@ int issue()
     fclose(member);
     fclose(temp);
 
-    // Step 3: Update the books.csv file if book was issued
-
-    if (!found)
-    {
-        printf("Book not found");
-    }
-
-    if (found)
+    // Update only if something was issued
+    if (any_issue_done)
     {
         remove("books.csv");
         rename("temp.csv", "books.csv");
     }
     else
     {
-        remove("temp.csv"); // Clean up if nothing issued
+        remove("temp.csv");
     }
 
     return 0;
 }
-
 
 // Main menu: allows repeating the issue process
 void issue_books()
@@ -331,5 +316,5 @@ void issue_books()
         // fgets(choice, sizeof(choice), stdin);
         scanf(" %c", &choice);
         // remove_newLine(choice);
-    } while (choice == 'y' || choice == 'y');
+    } while (choice == 'y' || choice == 'Y');
 }
