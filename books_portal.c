@@ -100,8 +100,16 @@ void addBook()
     int tempID;
 
     // Load existing IDs
-    rewind(file);                    // ensure we read from start
-    fgets(line, sizeof(line), file); // skip header if any
+    rewind(file);         
+    fseek(file, 0, SEEK_END);
+    long size = ftell(file);
+    if (size == 0)
+    {
+        fprintf(file, "ID,Title,Author\n");
+        fflush(file);
+    }           
+    // rewind(file);// ensure we read from start
+    // fgets(line, sizeof(line), file); // skip header if any
     while (fgets(line, sizeof(line), file))
     {
         char *token = strtok(line, ","); // taking the first thing before the comma in the string
