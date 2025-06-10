@@ -180,13 +180,21 @@ int issue()
     int any_issue_done = 0; // Track if anything was issued at all
 
     FILE *stock = fopen("books.csv", "r");
-    FILE *issue_file = fopen("issue.csv", "a");
+    FILE *issue_file = fopen("issue.csv", "a+");
     FILE *member = fopen("member.csv", "r");
 
     if (!stock || !issue_file || !member)
     {
         printf("Unable to open file!\n");
         return 1;
+    }
+
+    fseek(issue_file, 0, SEEK_END);
+    long size = ftell(issue_file);
+    if (size == 0)
+    {
+        fprintf(issue_file, "Member ID ,Book Title, Book ID, Issue Date\n");
+        fflush(issue_file);
     }
 
     FILE *temp = fopen("temp.csv", "w");
