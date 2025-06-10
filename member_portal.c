@@ -26,17 +26,18 @@ void displaymembermenu()
 int member_addition()
 {
     FILE *member;
-    char name[200], id[200], contact[200], dep[200], session[200], choice;
+    char name[200], id[200], contact[200], dep[200], session[200], choice_line[10], data[200];
+    char choice;
 
     // Open file in append mode to add new data
-    member = fopen("member.csv", "a");
-
+    member = fopen("member.csv", "a+");
     if (member == NULL)
     {
-        printf("Unable to open file");
+        printf("Unable to open file\n");
         return 1;
     }
 
+    char *user_id;
     // Check if file is empty, if so write header row
     fseek(member, 0, SEEK_END);
     long size = ftell(member);
@@ -45,42 +46,69 @@ int member_addition()
         fprintf(member, "Sr,Name,ID,Department,Session,Contact\n");
     }
 
-    printf("Provide following details to get membership\n");
+    printf("Provide the following details to get membership\n");
 
     do
     {
         // Taking member details
-        printf("1. Name : ");
-        fgets(name, sizeof(name), stdin);
-        remove_newline(name);
+        while (1)
+        {
+            printf("1. Name : ");
+            fgets(name, sizeof(name), stdin);
+            remove_newline(name);
 
-        printf("2. User ID : ");
-        fgets(id, sizeof(id), stdin);
-        remove_newline(id);
+            do 
+            {
 
-        printf("3. Department : ");
-        fgets(dep, sizeof(dep), stdin);
-        remove_newline(dep);
+                printf("2. User ID : ");
+                fgets(id, sizeof(id), stdin);
+                remove_newline(id);
+    
+                char *name = strtok(data, ",");
+                user_id = strtok(NULL, ",");
+                if (strcmp(user_id, id) == 1)
+                {
+                    printf("ID is Occupied! Please enter a different ID.\n");
+                }
+            }while (strcmp(user_id, id) == 1);
 
-        printf("4. Session : ");
-        fgets(session, sizeof(session), stdin);
-        remove_newline(session);
+            printf("3. Department : ");
+            fgets(dep, sizeof(dep), stdin);
+            remove_newline(dep);
 
-        printf("5. Contact : ");
-        fgets(contact, sizeof(contact), stdin);
-        remove_newline(contact);
+            printf("4. Session : ");
+            fgets(session, sizeof(session), stdin);
+            remove_newline(session);
+
+            printf("5. Contact : ");
+            fgets(contact, sizeof(contact), stdin);
+            remove_newline(contact);
+
+            if (strlen(name) == 0 || strlen(id) == 0 || strlen(dep) == 0 ||
+                strlen(session) == 0 || strlen(contact) == 0)
+            {
+                printf("\nAll fields must be filled! Please try again.\n\n");
+            }
+            else
+            {
+                break; // all fields are filled
+            }
+        }
 
         // Writing member data
         fprintf(member, "%s,%s,%s,%s,%s\n", name, id, dep, session, contact);
 
         // Ask if user wants to enter another member
-        printf("Do you want to enter user again?(yes/no) : ");
-        scanf(" %c", &choice);
-
+        printf("Do you want to enter user again? (y/n): ");
+        fgets(choice_line, sizeof(choice_line), stdin);
+        remove_newline(choice_line);
+        choice = choice_line[0];
     } while (choice == 'y' || choice == 'Y');
 
     fclose(member); // Close the file
+    return 0;
 }
+
 
 // Function to search a member using ID
 
@@ -95,7 +123,7 @@ int search()
         return 1;
     }
 
-    char id[200], data[300], choice;
+    char id[200], data[300], choice, choice_line[10];
     int found;
 
     do
@@ -140,7 +168,9 @@ int search()
         }
 
         printf("Do you want to find another member (yes/no) : ");
-        scanf(" %c", &choice);
+        fgets(choice_line, sizeof(choice_line), stdin);
+        remove_newline(choice_line);
+        choice = choice_line[0];
         rewind(member); // Reset file pointer to start
 
     } while (choice == 'y' || choice == 'Y');
@@ -152,7 +182,7 @@ int search()
 // Function to delete a member by ID
 int delete()
 {
-    char id[200], data[200], choice;
+    char id[200], data[200], choice, choice_line[10];
 
     do
     {
@@ -209,7 +239,9 @@ int delete()
 
         // Ask if user wants to delete another entry
         printf("Do you want to delete membership again (yes/no) : ");
-        scanf(" %c", &choice);
+        fgets(choice_line, sizeof(choice_line), stdin);
+        remove_newline(choice_line);
+        choice = choice_line[0];
     } while (choice == 'y' || choice == 'Y');
 }
 
