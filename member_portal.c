@@ -19,7 +19,7 @@ void displaymembermenu()
 {
     printf("Membership portal");
     printf("\nOptions : ");
-    printf("\n1. Add Member\n2. Search member\n3. Delete membership\n4. Exit");
+    printf("\n1. Add Member\n2. Search member\n3. Delete membership\n4. Exit\n");
 }
 
 // Function to add new member details
@@ -224,28 +224,33 @@ void manage_members()
         displaymembermenu();
         printf("Select an option: ");
         scanf("%d", &option);
-
         while (getchar() != '\n')
             ; // Clear input buffer
 
-        // Call respective functions based on user choice
-        switch (option)
+        if (option < 1 || option > 4)
         {
-        case 1:
-            member_addition();
-            break;
-        case 2:
-            search();
-            break;
-        case 3:
-            delete();
-            break;
-        case 4:
-            printf("Exiting...");
-            return; // Exit program
-        default:
-            printf("Invalid choice. Please choose a valid option.\n");
+            printf("Invalid option. Please choose a valid option.\n");
         }
 
+        else
+        { // Call respective functions based on user choice
+            switch (option)
+            {
+            case 1:
+                member_addition();
+                break;
+            case 2:
+                search();
+                break;
+            case 3:
+                delete();
+                break;
+            case 4:
+                printf("Exiting...");
+                return; // Exit program
+            default:
+                printf("Invalid choice. Please choose a valid option.\n");
+            }
+        }
     } while (option != 4);
 }
