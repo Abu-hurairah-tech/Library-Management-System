@@ -3,7 +3,7 @@
 #include <string.h>
 #include "books.h"
 
-#define MAX_BOOKS 100
+#define MAX_BOOKS 300
 #define MAX_TITLE_LENGTH 256
 
 typedef struct
@@ -16,6 +16,18 @@ typedef struct
 Book books[MAX_BOOKS];
 int bookCount = 0;
 int nextBookID = 1;
+
+void static remove_newline(char *str)
+{
+    for (int i = 0; str[i] != '\0'; i++)
+    {
+        if (str[i] == '\n')
+        {
+            str[i] = '\0';
+            break;
+        }
+    }
+}
 
 void displayMenu()
 {
@@ -162,32 +174,32 @@ void addBook()
 
 void deleteBook()
 {
-    FILE *original_File = fopen("books.csv", "r"); // opening the file in read mode
-    FILE *temp_File = fopen("temp.csv", "w");      // opening the file in write mode
-
-    if (original_File == NULL || temp_File == NULL)
-    {
-        printf("Could not open file.\n");
-        return;
-    }
-
     int delete_ID;
-    int found = 0;
     char line[MAX_TITLE_LENGTH];
     char choice;
-
-    printf("Enter book ID to delete: ");
-    scanf("%d", &delete_ID);
-    getchar(); // clear newline from input buffer
-
-    // Read and write header
-    if (fgets(line, sizeof(line), original_File))
-    {
-        fputs(line, temp_File); // write header
-    }
-
+    char choice_line[10];
     do
     {
+        int found = 0;
+        FILE *original_File = fopen("books.csv", "r"); // opening the file in read mode
+        FILE *temp_File = fopen("temp.csv", "w");      // opening the file in write mode
+
+        if (original_File == NULL || temp_File == NULL)
+        {
+            printf("Could not open file.\n");
+            return;
+        }
+
+        printf("Enter book ID to delete: ");
+        scanf("%d", &delete_ID);
+        getchar(); // clear newline from input buffer
+
+        // Read and write header
+        if (fgets(line, sizeof(line), original_File))
+        {
+            fputs(line, temp_File); // write header
+        }
+
         // Read book lines
         while (fgets(line, sizeof(line), original_File))
         {
@@ -209,23 +221,26 @@ void deleteBook()
 
             fputs(lineCopy, temp_File); // write original line back
         }
-        printf("\nDo you want to delete another book? (y/n): ");
-        scanf(" %c", &choice);
-    } while (choice == 'y' || choice == 'Y');
-    fclose(original_File);
-    fclose(temp_File);
 
-    if (found)
-    {
-        remove("books.csv");
-        rename("temp.csv", "books.csv");
-        printf("Book Deleted Successfully!\n");
-    }
-    else
-    {
-        remove("temp.csv");
-        printf("Book not found!\n");
-    }
+        fclose(original_File);
+        fclose(temp_File);
+
+        if (found)
+        {
+            remove("books.csv");
+            rename("temp.csv", "books.csv");
+            printf("Book Deleted Successfully!\n");
+        }
+        else
+        {
+            remove("temp.csv");
+            printf("Book not found!\n");
+        }
+        printf("\nDo you want to delete another book? (y/n): ");
+        fgets(choice_line, sizeof(choice_line), stdin);
+        remove_newline(choice_line);
+        choice = choice_line[0];
+    } while (choice == 'y' || choice == 'Y');
 }
 
 void searchBookByID()
@@ -245,8 +260,8 @@ void searchBookByID()
 
     do
     {
-        found = 0;  // Reset found flag
-        rewind(ptr);  // Rewind the file to the beginning
+        found = 0;                      // Reset found flag
+        rewind(ptr);                    // Rewind the file to the beginning
         fgets(line, sizeof(line), ptr); // Skip header (if any)
 
         printf("Enter book ID to search: ");
@@ -286,7 +301,6 @@ void searchBookByID()
 
     fclose(ptr);
 }
-
 
 void manage_books()
 {
