@@ -179,36 +179,36 @@ int issue()
     int is_verified = 0;
     int any_issue_done = 0; // Track if anything was issued at all
 
-    FILE *stock = fopen("books.csv", "r");
-    FILE *issue_file = fopen("issue.csv", "a+");
-    FILE *member = fopen("member.csv", "r");
-
-    if (!stock || !issue_file || !member)
-    {
-        printf("Unable to open file!\n");
-        return 1;
-    }
-
-    fseek(issue_file, 0, SEEK_END);
-    long size = ftell(issue_file);
-    if (size == 0)
-    {
-        fprintf(issue_file, "Member ID ,Book Title, Book ID, Issue Date\n");
-        fflush(issue_file);
-    }
-
-    FILE *temp = fopen("temp.csv", "w");
-    if (!temp)
-    {
-        printf("Unable to create temp file.\n");
-        return 1;
-    }
-
+    
+    
     do
     {
+        FILE *stock = fopen("books.csv", "r");
+        FILE *issue_file = fopen("issue.csv", "a+");
+        FILE *member = fopen("member.csv", "r");
+        
+        if (!stock || !issue_file || !member)
+        {
+            printf("Unable to open file!\n");
+            return 1;
+        }
         rewind(stock);
         rewind(member);
-        fgets(data_member, sizeof(data_member), member); // Skip headers
+        fseek(issue_file, 0, SEEK_END);
+        long size = ftell(issue_file);
+        if (size == 0)
+        {
+            fprintf(issue_file, "Member ID ,Book Title, Book ID, Issue Date\n");
+            fflush(issue_file);
+        }
+    
+        FILE *temp = fopen("temp.csv", "w");
+        if (!temp)
+        {
+            printf("Unable to create temp file.\n");
+            return 1;
+        }
+        // fgets(data_member, sizeof(data_member), member); // Skip headers
         fgets(data_book, sizeof(data_book), stock);
 
         found = 0;
@@ -289,26 +289,26 @@ int issue()
             printf("Book not found in stock.\n");
         }
 
+        fclose(stock);
+        fclose(issue_file);
+        fclose(member);
+        fclose(temp);
+    
+        // Update only if something was issued
+        if (any_issue_done)
+        {
+            remove("books.csv");
+            rename("temp.csv", "books.csv");
+        }
+        else
+        {
+            remove("temp.csv");
+        }
         printf("Do you want to issue another book? (y/n): ");
         scanf(" %c", &choice);
 
     } while (choice == 'y' || choice == 'Y');
 
-    fclose(stock);
-    fclose(issue_file);
-    fclose(member);
-    fclose(temp);
-
-    // Update only if something was issued
-    if (any_issue_done)
-    {
-        remove("books.csv");
-        rename("temp.csv", "books.csv");
-    }
-    else
-    {
-        remove("temp.csv");
-    }
 
     return 0;
 }
