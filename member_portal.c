@@ -57,20 +57,20 @@ int member_addition()
             fgets(name, sizeof(name), stdin);
             remove_newline(name);
 
-            do 
-            {
+            // do 
+            // {
 
                 printf("2. User ID : ");
                 fgets(id, sizeof(id), stdin);
                 remove_newline(id);
     
-                char *name = strtok(data, ",");
-                user_id = strtok(NULL, ",");
-                if (strcmp(user_id, id) == 1)
-                {
-                    printf("ID is Occupied! Please enter a different ID.\n");
-                }
-            }while (strcmp(user_id, id) == 1);
+            //     char *name = strtok(data, ",");
+            //     user_id = strtok(NULL, ",");
+            //     if (strcmp(user_id, id) == 1)
+            //     {
+            //         printf("ID is Occupied! Please enter a different ID.\n");
+            //     }
+            // }while (strcmp(user_id, id) == 1);
 
             printf("3. Department : ");
             fgets(dep, sizeof(dep), stdin);
