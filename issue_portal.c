@@ -32,14 +32,61 @@ void clear_input_buffer()
         ;
 }
 
+int is_leap_year(int year)
+{
+    return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
+}
+
+int is_valid_date(int day, int month, int year)
+{
+    if (year < 1 || month < 1 || month > 12 || day < 1)
+        return 0;
+
+    int days_in_month[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+
+    // Adjust February for leap years
+    if (is_leap_year(year))
+        days_in_month[1] = 29;
+
+    return day <= days_in_month[month - 1];
+}
+
+void input_valid_date(Date *d)
+{
+    int valid = 0;
+    while (!valid)
+    {
+        printf("Enter date (DD MM YYYY): ");
+        if (scanf("%d %d %d", &d->day, &d->month, &d->year) != 3)
+        {
+            printf("Invalid input format. Please enter 3 integers.\n");
+            clear_input_buffer(); // Clean up invalid input
+            continue;
+        }
+
+        if (is_valid_date(d->day, d->month, d->year))
+        {
+            valid = 1;
+        }
+        else
+        {
+            printf("Invalid date. Please enter a valid calendar date.\n");
+        }
+
+        clear_input_buffer(); // Remove trailing newline or extra input
+    }
+}
+
+
+
 // Registers new members and writes their info to member.csv
 int application()
 {
     FILE *member;
-    char name[200], id[200], contact[200], dep[200], session[200];
+    char name[200], id[200], contact[200], dep[200], session[200], data_member[200];
     char choice;
 
-    member = fopen("member.csv", "a"); // open for appending
+    member = fopen("member.csv", "a+"); // open for appending
     if (member == NULL)
     {
         printf("Unable to open file\n");
@@ -64,9 +111,28 @@ int application()
             fgets(name, sizeof(name), stdin);
             remove_newLine(name);
 
-            printf("2. User ID: ");
-            fgets(id, sizeof(id), stdin);
-            remove_newLine(id);
+            int is_unique;
+
+            do
+            {
+                is_unique = 0;
+                printf("2. User ID : ");
+                fgets(id, sizeof(id), stdin);
+                remove_newLine(id);
+                rewind(member);
+                while (fgets(data_member, sizeof(data_member), member))
+                {
+                    char *name = strtok(data_member, ",");
+                    char *user_id = strtok(NULL, ",");
+
+                    if (id && strcmp(id, user_id) == 0)
+                    {
+                        printf("User ID already exists\n");
+                        is_unique = 1;
+                        break;
+                    }
+                }
+            } while (is_unique);
 
             printf("3. Department: ");
             fgets(dep, sizeof(dep), stdin);
@@ -153,6 +219,9 @@ int member_verification(char *id_verify)
         {
             clear_input_buffer();
             application();
+            printf("Enter member ID to verify: ");
+            scanf(" %199s", id_verify);
+            clear_input_buffer();
             return 1;
         }
         else
@@ -174,19 +243,17 @@ int issue()
     int found = 0;
     char date_str[20];
     Date issue_date;
-    char choice;
+    char choice, choice_line[10];
     char id_verify[200];
     int is_verified = 0;
     int any_issue_done = 0; // Track if anything was issued at all
 
-    
-    
     do
     {
         FILE *stock = fopen("books.csv", "r");
         FILE *issue_file = fopen("issue.csv", "a+");
         FILE *member = fopen("member.csv", "r");
-        
+
         if (!stock || !issue_file || !member)
         {
             printf("Unable to open file!\n");
@@ -198,25 +265,21 @@ int issue()
         long size = ftell(issue_file);
         if (size == 0)
         {
-            fprintf(issue_file, "Member ID ,Book Title, Book ID, Issue Date\n");
+            fprintf(issue_file, "Member ID,Book Title,Book ID,Issue Date\n");
             fflush(issue_file);
         }
-    
+
         FILE *temp = fopen("temp.csv", "w");
         if (!temp)
         {
             printf("Unable to create temp file.\n");
             return 1;
         }
-        // fgets(data_member, sizeof(data_member), member); // Skip headers
-        fgets(data_book, sizeof(data_book), stock);
-
+        fgets(data_book, sizeof(data_book), stock); // Read header
+        fputs(data_book, temp);                     // Write header to temp
         found = 0;
 
         printf("To issue a book, you have to be a member\n");
-        printf("Enter your member ID: ");
-        scanf("%s", id_verify);
-        remove_newLine(id_verify);
 
         is_verified = member_verification(id_verify);
         if (!is_verified)
@@ -230,8 +293,8 @@ int issue()
         printf("Member verified.\n");
 
         printf("Enter book ID to issue: ");
-        scanf("%s", id);
-        remove_newLine(id);
+        scanf(" %199s", id);
+        clear_input_buffer();
 
         while (fgets(data_book, sizeof(data_book), stock))
         {
@@ -248,8 +311,6 @@ int issue()
                 found = 1;
 
                 rewind(member);
-                fgets(data_member, sizeof(data_member), member); // Skip header again
-
                 int user_found = 0;
                 while (fgets(data_member, sizeof(data_member), member))
                 {
@@ -260,10 +321,7 @@ int issue()
                     {
                         user_found = 1;
                         printf("Enter date of issue (DD MM YYYY): ");
-                        scanf("%d %d %d", &issue_date.day, &issue_date.month, &issue_date.year);
-                        while (getchar() != '\n')
-                            ; // Clear input buffer
-
+                        input_valid_date(&issue_date);
                         format_date(issue_date, date_str, sizeof(date_str));
 
                         printf("Book issued to: %s, %s\n", name, user_id);
@@ -293,7 +351,7 @@ int issue()
         fclose(issue_file);
         fclose(member);
         fclose(temp);
-    
+
         // Update only if something was issued
         if (any_issue_done)
         {
@@ -309,20 +367,11 @@ int issue()
 
     } while (choice == 'y' || choice == 'Y');
 
-
     return 0;
 }
 
 // Main menu: allows repeating the issue process
 void issue_books()
 {
-    char choice;
-    do
-    {
-        issue(); // call issuing function
-        printf("Do you want issue again (yes/no) : ");
-        // fgets(choice, sizeof(choice), stdin);
-        scanf(" %c", &choice);
-        // remove_newLine(choice);
-    } while (choice == 'y' || choice == 'Y');
+    issue(); // call issuing function
 }
