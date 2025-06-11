@@ -43,7 +43,7 @@ int member_addition()
     long size = ftell(member);
     if (size == 0)
     {
-        fprintf(member, "Sr,Name,ID,Department,Session,Contact\n");
+        fprintf(member, "Name,ID,Department,Session,Contact\n");
     }
 
     printf("Provide the following details to get membership\n");
@@ -57,20 +57,28 @@ int member_addition()
             fgets(name, sizeof(name), stdin);
             remove_newline(name);
 
-            // do 
-            // {
+            int is_unique;
 
+            do
+            {
+                is_unique = 0;
                 printf("2. User ID : ");
                 fgets(id, sizeof(id), stdin);
                 remove_newline(id);
-    
-            //     char *name = strtok(data, ",");
-            //     user_id = strtok(NULL, ",");
-            //     if (strcmp(user_id, id) == 1)
-            //     {
-            //         printf("ID is Occupied! Please enter a different ID.\n");
-            //     }
-            // }while (strcmp(user_id, id) == 1);
+                rewind(member);
+                while (fgets(data, sizeof(data), member))
+                {
+                    char *name = strtok(data, ",");
+                    char *user_id = strtok(NULL, ",");
+
+                    if (id && strcmp(id, user_id) == 0)
+                    {
+                        printf("User ID already exists\n");
+                        is_unique = 1;
+                        break;
+                    }
+                }
+            } while (is_unique);
 
             printf("3. Department : ");
             fgets(dep, sizeof(dep), stdin);
@@ -108,7 +116,6 @@ int member_addition()
     fclose(member); // Close the file
     return 0;
 }
-
 
 // Function to search a member using ID
 

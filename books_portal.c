@@ -5,10 +5,11 @@
 
 #define MAX_BOOKS 300
 #define MAX_TITLE_LENGTH 256
+#define MAX_ID_LENGTH 300
 
 typedef struct
 {
-    int book_ID;
+    char book_ID[MAX_ID_LENGTH];
     char title[MAX_TITLE_LENGTH];
     char author[MAX_TITLE_LENGTH];
 } Book;
@@ -49,42 +50,31 @@ void loadBooksFromFile()
     }
 
     char line[256];
-    int isFirstLine = 1;
+    fgets(line, sizeof(line), file); // Skip header
 
     while (fgets(line, sizeof(line), file))
     {
-
         if (strlen(line) > 1 && bookCount < MAX_BOOKS)
         {
-            char *token = strtok(line, ","); // taking the first thing before the comma in the string
+            char *token = strtok(line, ",");
             if (token)
-            {
-                books[bookCount].book_ID = atoi(token); // The first thing before the comma is ID but in string    format, atoi(token) will convert the string to an integer
-            }
+                strncpy(books[bookCount].book_ID, token, MAX_ID_LENGTH);
 
-            token = strtok(NULL, ","); // taking the next thing before the next comma in the string
+            token = strtok(NULL, ",");
             if (token)
-            {
-                strncpy(books[bookCount].title, token, MAX_TITLE_LENGTH); // copying the string which is in the token variable to the title of the book (books[bookCount].title)
-            }
+                strncpy(books[bookCount].title, token, MAX_TITLE_LENGTH);
 
             token = strtok(NULL, ",\n");
             if (token)
-            {
                 strncpy(books[bookCount].author, token, MAX_TITLE_LENGTH);
-            }
 
             bookCount++;
         }
     }
 
-    if (bookCount > 0)
-    {
-        nextBookID = books[bookCount - 1].book_ID + 1; // getting the next book ID
-    }
-
     fclose(file);
 }
+
 
 void addBook()
 {
@@ -95,86 +85,62 @@ void addBook()
         return;
     }
 
-    int usedIDs[MAX_BOOKS] = {0};
+    char newID[MAX_ID_LENGTH];
+    char title[MAX_TITLE_LENGTH];
+    char author[MAX_TITLE_LENGTH];
     char line[256];
-    int tempID;
+    char existingID[MAX_ID_LENGTH];
+    char choice;
 
-    // Load existing IDs
-    rewind(file);         
+    // Write header if file is empty
     fseek(file, 0, SEEK_END);
-    long size = ftell(file);
-    if (size == 0)
+    if (ftell(file) == 0)
     {
         fprintf(file, "ID,Title,Author\n");
         fflush(file);
-    }           
-    // rewind(file);// ensure we read from start
-    // fgets(line, sizeof(line), file); // skip header if any
-    while (fgets(line, sizeof(line), file))
-    {
-        char *token = strtok(line, ","); // taking the first thing before the comma in the string
-        if (token)
-        {
-            tempID = atoi(token); // The first thing before the comma is ID but in string format, atoi(token) will   convert the string to an integer
-            if (tempID > 0 && tempID <= MAX_BOOKS)
-                usedIDs[tempID - 1] = 1; // when the ID is used, it will be marked as 1 in the usedIDs array
-        }
     }
-
-    char title[MAX_TITLE_LENGTH];
-    char author[MAX_TITLE_LENGTH];
-    int newID;
-    char choice;
 
     do
     {
+        int duplicate = 0;
+        rewind(file);
+        fgets(line, sizeof(line), file); // skip header
+
         printf("Enter desired ID for the book: ");
-        scanf("%d", &newID);
-        getchar(); // clear newline
+        fgets(newID, MAX_ID_LENGTH, stdin);
+        remove_newline(newID);
 
-        if (newID <= 0 || newID > MAX_BOOKS) // checking if the ID is valid
+        while (fgets(line, sizeof(line), file))
         {
-            printf("Invalid ID. Please enter a number between 1 and %d.\n", MAX_BOOKS);
-            continue;
-        }
-
-        if (usedIDs[newID - 1] == 1) // checking if the ID is used
-        {
-            printf("ID %d is already occupied.\n", newID);
-            printf("Please enter a different ID.\n");
-        }
-
-        printf("Enter book title: ");
-        fgets(title, MAX_TITLE_LENGTH, stdin); // getting standard input from the user into the title array
-        title[strcspn(title, "\n")] = '\0';    // removing the newline character from the end of the string
-
-        printf("Enter book author: ");
-        fgets(author, MAX_TITLE_LENGTH, stdin); // getting standard input from the user into the author array
-        author[strcspn(author, "\n")] = '\0';
-
-        // Ensure the file ends with a newline before appending
-        fseek(file, 0, SEEK_END);
-        long size = ftell(file);
-        if (size > 0)
-        {
-            fseek(file, -1, SEEK_END);
-            int lastChar = fgetc(file);
-            if (lastChar != '\n')
+            strncpy(existingID, strtok(line, ","), MAX_ID_LENGTH);
+            if (strcmp(existingID, newID) == 0)
             {
-                fputc('\n', file);
+                duplicate = 1;
+                break;
             }
         }
 
-        fprintf(file, "%d,%s,%s\n", newID, title, author);
-        usedIDs[newID - 1] = 1;
-        bookCount++;
+        if (duplicate)
+        {
+            printf("ID '%s' already exists. Try another.\n", newID);
+            continue;
+        }
 
-        printf("Book added successfully with ID %d.\n", newID);
+        printf("Enter book title: ");
+        fgets(title, MAX_TITLE_LENGTH, stdin);
+        remove_newline(title);
+
+        printf("Enter book author: ");
+        fgets(author, MAX_TITLE_LENGTH, stdin);
+        remove_newline(author);
+
+        fprintf(file, "%s,%s,%s\n", newID, title, author);
+        printf("Book added successfully with ID '%s'.\n", newID);
+        bookCount++;
 
         printf("Do you want to add another book? (y/n): ");
         choice = fgetc(stdin);
-        while (fgetc(stdin) != '\n')
-            ; // flush newline
+        while (fgetc(stdin) != '\n');
     } while (choice == 'y' || choice == 'Y');
 
     fclose(file);
@@ -182,15 +148,15 @@ void addBook()
 
 void deleteBook()
 {
-    int delete_ID;
-    char line[MAX_TITLE_LENGTH];
-    char choice;
-    char choice_line[10];
+    char delete_ID[MAX_ID_LENGTH];
+    char line[256];
+    char choice, choice_line[10];
+
     do
     {
         int found = 0;
-        FILE *original_File = fopen("books.csv", "r"); // opening the file in read mode
-        FILE *temp_File = fopen("temp.csv", "w");      // opening the file in write mode
+        FILE *original_File = fopen("books.csv", "r");
+        FILE *temp_File = fopen("temp.csv", "w");
 
         if (original_File == NULL || temp_File == NULL)
         {
@@ -199,35 +165,27 @@ void deleteBook()
         }
 
         printf("Enter book ID to delete: ");
-        scanf("%d", &delete_ID);
-        getchar(); // clear newline from input buffer
+        fgets(delete_ID, sizeof(delete_ID), stdin);
+        remove_newline(delete_ID);
 
-        // Read and write header
         if (fgets(line, sizeof(line), original_File))
         {
-            fputs(line, temp_File); // write header
+            fputs(line, temp_File);
         }
 
-        // Read book lines
         while (fgets(line, sizeof(line), original_File))
         {
             char lineCopy[MAX_TITLE_LENGTH];
-            strcpy(lineCopy, line); // in case we want to re-use
+            strcpy(lineCopy, line);
 
             char *token = strtok(line, ",");
-            if (token == NULL)
-            {
-                continue;
-            }
-            int current_ID = atoi(token);
-
-            if (current_ID == delete_ID)
+            if (token && strcmp(token, delete_ID) == 0)
             {
                 found = 1;
-                continue; // skip writing this line (delete it)
+                continue; // skip writing this line
             }
 
-            fputs(lineCopy, temp_File); // write original line back
+            fputs(lineCopy, temp_File);
         }
 
         fclose(original_File);
@@ -253,13 +211,11 @@ void deleteBook()
 
 void searchBookByID()
 {
-    FILE *ptr;
-    char line[200];
-    int searchID;
+    FILE *ptr = fopen("books.csv", "r");
+    char line[256], searchID[MAX_ID_LENGTH], *title, *author;
     int found;
     char choice;
 
-    ptr = fopen("books.csv", "r");
     if (ptr == NULL)
     {
         printf("Could not open file!\n");
@@ -268,44 +224,40 @@ void searchBookByID()
 
     do
     {
-        found = 0;                      // Reset found flag
-        rewind(ptr);                    // Rewind the file to the beginning
-        fgets(line, sizeof(line), ptr); // Skip header (if any)
+        found = 0;
+        rewind(ptr);
+        fgets(line, sizeof(line), ptr); // Skip header
 
         printf("Enter book ID to search: ");
-        scanf("%d", &searchID);
-        getchar(); // Clear leftover newline
+        fgets(searchID, MAX_ID_LENGTH, stdin);
+        remove_newline(searchID);
 
         while (fgets(line, sizeof(line), ptr))
         {
-            char *token = strtok(line, ","); // Extract the ID
-
-            if (token)
+            char *token = strtok(line, ",");
+            if (token && strcmp(token, searchID) == 0)
             {
-                int currentID = atoi(token);
-                if (currentID == searchID)
-                {
-                    char *title = strtok(NULL, ",");
-                    char *author = strtok(NULL, ",");
-                    printf("\nBook found:\n");
-                    printf("ID: %d\n", currentID);
-                    printf("Title: %s\n", title);
-                    printf("Author: %s\n", author);
-                    found = 1;
-                    break;
-                }
+                title = strtok(NULL, ",");
+                author = strtok(NULL, ",\n");
+
+                printf("\nBook found:\n");
+                printf("ID: %s\n", token);
+                printf("Title: %s\n", title);
+                printf("Author: %s\n", author);
+                found = 1;
+                break;
             }
         }
 
         if (!found)
         {
-            printf("No book found with ID %d.\n", searchID);
+            printf("No book found with ID '%s'.\n", searchID);
         }
 
         printf("\nDo you want to search again? (y/n): ");
-        scanf(" %c", &choice); // Note the space before %c
-
-    } while (choice == 'Y' || choice == 'y');
+        scanf(" %c", &choice);
+        getchar();
+    } while (choice == 'y' || choice == 'Y');
 
     fclose(ptr);
 }

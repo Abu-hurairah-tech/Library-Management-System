@@ -21,7 +21,10 @@ Date parseDate(char *dateStr) {
 
 int countLeapYears(Date d) {
     int years = d.year;
-    if (d.month <= 2) years--;
+    if (d.month <= 2) 
+    {
+        years--;
+    }
     return years / 4 - years / 100 + years / 400;
 }
 
