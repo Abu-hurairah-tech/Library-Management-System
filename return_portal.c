@@ -89,9 +89,21 @@ void removeFromIssueFile(char *bookID, char *memberID) {
 }
 
 
-void addFine(char *bookID, char *memberID, int daysLate, int fine) {
-    FILE *f = fopen("fine.csv", "a");
-    fprintf(f, "%s,%s,%d,%d\n", bookID, memberID, daysLate, fine);
+void addFine(char *bookID, char *memberID, int daysLate, int fine, Date DOI, Date DOR) {
+    FILE *f = fopen("fine.csv", "a+");
+    // Write header if file is empty
+    fseek(f, 0, SEEK_END);
+    if (ftell(f) == 0)
+    {
+        fprintf(f, "Book ID,Member ID,Date of Issue,Date of Return,Days Late,Fine\n");
+        fflush(f);
+    }
+
+     char doiStr[11], dorStr[11];
+    snprintf(doiStr, sizeof(doiStr), "%02d-%02d-%04d", DOI.day, DOI.month, DOI.year);
+    snprintf(dorStr, sizeof(dorStr), "%02d-%02d-%04d", DOR.day, DOR.month, DOR.year);
+
+    fprintf(f, "%s,%s,%s,%s,%d,%d\n", bookID, memberID, dorStr, doiStr, daysLate, fine);
     fclose(f);
 }
 
@@ -129,7 +141,7 @@ void return_books() {
             printf("Book returned on time. No fine.\n");
         } else {
             int fine = (daysBetween - 7) * 100;
-            addFine(bookID, memberID, daysBetween - 7, fine);
+            addFine(bookID, memberID, daysBetween - 7, fine, returnDate, issueDate);
             printf("Book returned late. Fine of Rs.%d added.\n", fine);
         }
         printf("Do you want to return another book? (y/n): ");
