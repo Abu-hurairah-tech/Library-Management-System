@@ -161,12 +161,11 @@ void fine()
     int choice;
     char cont;
     printf("Welcome to the Fine Portal!\n");
-    do
-    {
         printf("Please select an option:\n");
         printf("1. Fine Slip\n");
         printf("2. Fine Clearance\n");
         printf("3. Exit\n");
+        printf("Enter your choice: ");
         scanf("%d", &choice);
         getchar(); // Clear newline character from input buffer
         switch (choice)
@@ -179,15 +178,12 @@ void fine()
             break;
         case 3:
             printf("Exiting Fine Portal.\n");
+            return;
             break;
         default:
 
             printf("Invalid choice. Please try again.\n");
             break;
-        }
-        printf("Do you want to continue? (y/n): ");
-        scanf(" %c", &cont);
-        getchar(); // Clear newline character from input buffer
-    } while (cont == 'y' || cont == 'Y');
+        } // Clear newline character from input buffer
     printf("Thank you for using the Fine Portal!\n");
 }
