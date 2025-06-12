@@ -69,13 +69,14 @@ int main()
             case 'F':
             case 'f':
                 printf("Exiting...\n");
+                return 0;
                 break;
 
             default:
                 printf("Invalid input. Please try again.\n");
             }
 
-        } while (portalChoice != 'E' && portalChoice != 'e');
+        } while (portalChoice != 'F' && portalChoice != 'f');
     }
     else
     {
