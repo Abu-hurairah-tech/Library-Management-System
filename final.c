@@ -7,6 +7,7 @@
 #include "admin.h"
 #include "issue.h"
 #include "return.h"
+#include "fine.h"
 // #include <graphics.h>
 
 // #define  loginfile.csv "users.txt"
@@ -18,19 +19,20 @@ void displaymenu()
     printf("B. Books Management System\n");
     printf("C. Book Issue Management System\n");
     printf("D. Book Return Management System\n");
-    printf("E. Exit\n");
+    printf("E. Fine Management System\n");
+    printf("F. Exit\n");
 }
 
 int main()
 {
     int login_check = admin(); // get login result from admin()
-    
+
     if (login_check == 0)
     {
         char portalChoice;
-        
+
         printf("Welcome to Library Management System\n");
-        
+
         do
         {
             displaymenu();
@@ -61,6 +63,11 @@ int main()
 
             case 'E':
             case 'e':
+                fine();
+                break;
+
+            case 'F':
+            case 'f':
                 printf("Exiting...\n");
                 break;
 

@@ -56,7 +56,7 @@ void input_valid_date(Date *d)
     int valid = 0;
     while (!valid)
     {
-        printf("Enter date (DD MM YYYY): ");
+        // printf("Enter date (DD MM YYYY): ");
         if (scanf("%d %d %d", &d->day, &d->month, &d->year) != 3)
         {
             printf("Invalid input format. Please enter 3 integers.\n");
