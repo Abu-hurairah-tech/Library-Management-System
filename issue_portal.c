@@ -265,7 +265,7 @@ int issue()
         long size = ftell(issue_file);
         if (size == 0)
         {
-            fprintf(issue_file, "Member ID,Book Title,Book ID,Issue Date\n");
+            fprintf(issue_file, "Member ID,Book Title,Book Author,Book ID,Issue Date\n");
             fflush(issue_file);
         }
 
@@ -307,6 +307,8 @@ int issue()
 
             if (book_id && strcmp(book_id, id) == 0)
             {
+                remove_newLine(book_title);
+                remove_newLine(book_author);
                 printf("Book available: %s by %s\n", book_title, book_author);
                 found = 1;
 
@@ -316,7 +318,8 @@ int issue()
                 {
                     char *name = strtok(data_member, ",");
                     char *user_id = strtok(NULL, ",");
-
+                    remove_newLine(name);
+                    remove_newLine(user_id);
                     if (user_id && strcmp(id_verify, user_id) == 0)
                     {
                         user_found = 1;
@@ -325,7 +328,7 @@ int issue()
                         format_date(issue_date, date_str, sizeof(date_str));
 
                         printf("Book issued to: %s, %s\n", name, user_id);
-                        fprintf(issue_file, "%s,%s,%s,%s\n", user_id, book_title, book_id, date_str);
+                        fprintf(issue_file, "%s,%s,%s,%s,%s\n", user_id, book_title, book_author, book_id, date_str);
                         any_issue_done = 1; // Something was issued
                         break;
                     }
