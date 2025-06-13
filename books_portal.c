@@ -75,7 +75,6 @@ void loadBooksFromFile()
     fclose(file);
 }
 
-
 void addBook()
 {
     FILE *file = fopen("books.csv", "a+");
@@ -102,45 +101,59 @@ void addBook()
 
     do
     {
-        int duplicate = 0;
-        rewind(file);
-        fgets(line, sizeof(line), file); // skip header
-
-        printf("Enter desired ID for the book: ");
-        fgets(newID, MAX_ID_LENGTH, stdin);
-        remove_newline(newID);
-
-        while (fgets(line, sizeof(line), file))
+        while(1)
         {
-            strncpy(existingID, strtok(line, ","), MAX_ID_LENGTH);
-            if (strcmp(existingID, newID) == 0)
+
+            int duplicate = 0;
+            rewind(file);
+            fgets(line, sizeof(line), file); // skip header
+    
+            printf("Enter desired ID for the book: ");
+            fgets(newID, MAX_ID_LENGTH, stdin);
+            remove_newline(newID);
+    
+            while (fgets(line, sizeof(line), file))
             {
-                duplicate = 1;
-                break;
+                strncpy(existingID, strtok(line, ","), MAX_ID_LENGTH);
+                if (strcmp(existingID, newID) == 0)
+                {
+                    duplicate = 1;
+                    break;
+                }
+            }
+    
+            if (duplicate)
+            {
+                printf("ID '%s' already exists. Try another.\n", newID);
+                continue;
+            }
+    
+            printf("Enter book title: ");
+            fgets(title, MAX_TITLE_LENGTH, stdin);
+            remove_newline(title);
+    
+            printf("Enter book author: ");
+            fgets(author, MAX_TITLE_LENGTH, stdin);
+            remove_newline(author);
+    
+            if (strlen(newID) == 0 || strlen(title) == 0 || strlen(author) == 0)
+            {
+                printf("\nAll fields must be filled! Please try again.\n\n");
+            }
+            else
+            {
+                break; // all fields are filled
             }
         }
-
-        if (duplicate)
-        {
-            printf("ID '%s' already exists. Try another.\n", newID);
-            continue;
-        }
-
-        printf("Enter book title: ");
-        fgets(title, MAX_TITLE_LENGTH, stdin);
-        remove_newline(title);
-
-        printf("Enter book author: ");
-        fgets(author, MAX_TITLE_LENGTH, stdin);
-        remove_newline(author);
-
+        
         fprintf(file, "%s,%s,%s\n", newID, title, author);
         printf("Book added successfully with ID '%s'.\n", newID);
         bookCount++;
 
         printf("Do you want to add another book? (y/n): ");
         choice = fgetc(stdin);
-        while (fgetc(stdin) != '\n');
+        while (fgetc(stdin) != '\n')
+            ;
     } while (choice == 'y' || choice == 'Y');
 
     fclose(file);

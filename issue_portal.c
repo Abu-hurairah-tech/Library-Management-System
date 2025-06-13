@@ -304,11 +304,12 @@ int issue()
             char *book_id = strtok(data_book, ",");
             char *book_title = strtok(NULL, ",");
             char *book_author = strtok(NULL, ",");
+            remove_newLine(book_id);
+            remove_newLine(book_title);
+            remove_newLine(book_author);
 
             if (book_id && strcmp(book_id, id) == 0)
             {
-                remove_newLine(book_title);
-                remove_newLine(book_author);
                 printf("Book available: %s by %s\n", book_title, book_author);
                 found = 1;
 
