@@ -101,17 +101,17 @@ void addBook()
 
     do
     {
-        while(1)
+        while (1)
         {
 
             int duplicate = 0;
             rewind(file);
             fgets(line, sizeof(line), file); // skip header
-    
+
             printf("Enter desired ID for the book: ");
             fgets(newID, MAX_ID_LENGTH, stdin);
             remove_newline(newID);
-    
+
             while (fgets(line, sizeof(line), file))
             {
                 strncpy(existingID, strtok(line, ","), MAX_ID_LENGTH);
@@ -121,21 +121,21 @@ void addBook()
                     break;
                 }
             }
-    
+
             if (duplicate)
             {
                 printf("ID '%s' already exists. Try another.\n", newID);
                 continue;
             }
-    
+
             printf("Enter book title: ");
             fgets(title, MAX_TITLE_LENGTH, stdin);
             remove_newline(title);
-    
+
             printf("Enter book author: ");
             fgets(author, MAX_TITLE_LENGTH, stdin);
             remove_newline(author);
-    
+
             if (strlen(newID) == 0 || strlen(title) == 0 || strlen(author) == 0)
             {
                 printf("\nAll fields must be filled! Please try again.\n\n");
@@ -145,7 +145,7 @@ void addBook()
                 break; // all fields are filled
             }
         }
-        
+
         fprintf(file, "%s,%s,%s\n", newID, title, author);
         printf("Book added successfully with ID '%s'.\n", newID);
         bookCount++;
@@ -167,54 +167,67 @@ void deleteBook()
 
     do
     {
-        int found = 0;
-        FILE *original_File = fopen("books.csv", "r");
-        FILE *temp_File = fopen("temp.csv", "w");
-
-        if (original_File == NULL || temp_File == NULL)
+        while (1)
         {
-            printf("Could not open file.\n");
-            return;
-        }
+            int found = 0;
+            FILE *original_File = fopen("books.csv", "r");
+            FILE *temp_File = fopen("temp.csv", "w");
 
-        printf("Enter book ID to delete: ");
-        fgets(delete_ID, sizeof(delete_ID), stdin);
-        remove_newline(delete_ID);
-
-        if (fgets(line, sizeof(line), original_File))
-        {
-            fputs(line, temp_File);
-        }
-
-        while (fgets(line, sizeof(line), original_File))
-        {
-            char lineCopy[MAX_TITLE_LENGTH];
-            strcpy(lineCopy, line);
-
-            char *token = strtok(line, ",");
-            if (token && strcmp(token, delete_ID) == 0)
+            if (original_File == NULL || temp_File == NULL)
             {
-                found = 1;
-                continue; // skip writing this line
+                printf("Could not open file.\n");
+                return;
             }
 
-            fputs(lineCopy, temp_File);
+            printf("Enter book ID to delete: ");
+            fgets(delete_ID, sizeof(delete_ID), stdin);
+            remove_newline(delete_ID);
+            if (strlen(delete_ID) == 0)
+            {
+                printf("\nID cannot be empty! Please try again.\n\n");
+                fclose(original_File);
+                fclose(temp_File);
+                remove("temp.csv");
+                continue;
+            }
+
+            if (fgets(line, sizeof(line), original_File))
+            {
+                fputs(line, temp_File);
+            }
+
+            while (fgets(line, sizeof(line), original_File))
+            {
+                char lineCopy[MAX_TITLE_LENGTH];
+                strcpy(lineCopy, line);
+
+                char *token = strtok(line, ",");
+                if (token && strcmp(token, delete_ID) == 0)
+                {
+                    found = 1;
+                    continue; // skip writing this line
+                }
+
+                fputs(lineCopy, temp_File);
+            }
+
+            fclose(original_File);
+            fclose(temp_File);
+
+            if (found)
+            {
+                remove("books.csv");
+                rename("temp.csv", "books.csv");
+                printf("Book Deleted Successfully!\n");
+            }
+            else
+            {
+                remove("temp.csv");
+                printf("Book not found!\n");
+            }
+            break;
         }
 
-        fclose(original_File);
-        fclose(temp_File);
-
-        if (found)
-        {
-            remove("books.csv");
-            rename("temp.csv", "books.csv");
-            printf("Book Deleted Successfully!\n");
-        }
-        else
-        {
-            remove("temp.csv");
-            printf("Book not found!\n");
-        }
         printf("\nDo you want to delete another book? (y/n): ");
         fgets(choice_line, sizeof(choice_line), stdin);
         remove_newline(choice_line);
@@ -237,34 +250,44 @@ void searchBookByID()
 
     do
     {
-        found = 0;
-        rewind(ptr);
-        fgets(line, sizeof(line), ptr); // Skip header
-
-        printf("Enter book ID to search: ");
-        fgets(searchID, MAX_ID_LENGTH, stdin);
-        remove_newline(searchID);
-
-        while (fgets(line, sizeof(line), ptr))
+        while(1)
         {
-            char *token = strtok(line, ",");
-            if (token && strcmp(token, searchID) == 0)
+
+            found = 0;
+            rewind(ptr);
+            fgets(line, sizeof(line), ptr); // Skip header
+    
+            printf("Enter book ID to search: ");
+            fgets(searchID, MAX_ID_LENGTH, stdin);
+            remove_newline(searchID);
+            if( strlen(searchID) == 0)
             {
-                title = strtok(NULL, ",");
-                author = strtok(NULL, ",\n");
-
-                printf("\nBook found:\n");
-                printf("ID: %s\n", token);
-                printf("Title: %s\n", title);
-                printf("Author: %s\n", author);
-                found = 1;
-                break;
+                printf("\nID cannot be empty! Please try again.\n\n");
+                continue;
             }
-        }
-
-        if (!found)
-        {
-            printf("No book found with ID '%s'.\n", searchID);
+    
+            while (fgets(line, sizeof(line), ptr))
+            {
+                char *token = strtok(line, ",");
+                if (token && strcmp(token, searchID) == 0)
+                {
+                    title = strtok(NULL, ",");
+                    author = strtok(NULL, ",\n");
+    
+                    printf("\nBook found:\n");
+                    printf("ID: %s\n", token);
+                    printf("Title: %s\n", title);
+                    printf("Author: %s\n", author);
+                    found = 1;
+                    break;
+                }
+            }
+    
+            if (!found)
+            {
+                printf("No book found with ID '%s'.\n", searchID);
+            }
+            break; // Exit the while loop after searching
         }
 
         printf("\nDo you want to search again? (y/n): ");
