@@ -32,6 +32,7 @@ void static remove_newline(char *str)
 
 void displayMenu()
 {
+    printf("\n\n\t\t\t=== Book Management System ===\n\n");
     printf("What do you want to do: \n");
     // printf("1. Enter 1 for check Books List. \n");
     printf("1. Add a book. \n");
@@ -311,17 +312,20 @@ void manage_books()
         switch (choice)
         {
         case 1:
+            printf("\n\n\t\t\t=== Add a Book ===\n\n");
             loadBooksFromFile();
             addBook();
             break;
         case 2:
+            printf("\n\n\t\t\t=== Search a Book ===\n\n");
             searchBookByID();
             break;
         case 3:
+            printf("\n\n\t\t\t=== Delete a Book ===\n\n");
             deleteBook();
             break;
         case 4:
-            printf("Exiting...\n");
+            printf("Exiting...\n\n");
             return;
         default:
             printf("\nInvalid choice. Please try again.\n");

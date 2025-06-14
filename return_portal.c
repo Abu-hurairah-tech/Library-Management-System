@@ -162,6 +162,8 @@ void return_books()
     char bookTitle[100], bookAuthor[100];
     int daysBetween;
 
+    printf("\n\n\t\t\t=== Return Books ===\n\n");
+
     do
     {
         printf("Enter Book ID to return: ");

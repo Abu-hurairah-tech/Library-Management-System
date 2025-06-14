@@ -31,7 +31,7 @@ int main()
     {
         char portalChoice;
 
-        printf("Welcome to Library Management System\n");
+        printf("\n\n\t\t\t=== Welcome to Library Management System ===\n\n");
 
         do
         {
@@ -68,7 +68,7 @@ int main()
 
             case 'F':
             case 'f':
-                printf("Exiting...\n");
+                printf("Exiting...\n\n");
                 return 0;
                 break;
 
@@ -80,7 +80,7 @@ int main()
     }
     else
     {
-        printf("Login failed. Exiting the program.\n");
+        printf("Login failed. Exiting the program.\n\n");
     }
 
     return 0;

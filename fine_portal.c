@@ -22,8 +22,8 @@ void slip_generation()
     do {
         int total_fine = 0;
     
-        // Input user ID
-        printf("Enter User ID: ");
+        // Input Member ID
+        printf("Enter Member ID: ");
         fgets(member_id, sizeof(member_id), stdin);
         remove_newline(member_id);
     
@@ -36,7 +36,7 @@ void slip_generation()
         // Print header
         printf("\n----------------------------------------------------------------------------------------\n");
         printf("| %-8s | %-10s | %-15s | %-15s | %-10s | %-6s |\n", 
-               "Book ID", "User ID", "Date Of Issue", "Date Of Return", "Days Late", "Fine");
+               "Book ID", "Member ID", "Date Of Issue", "Date Of Return", "Days Late", "Fine");
         printf("----------------------------------------------------------------------------------------\n");
     
         int found = 0;
@@ -74,9 +74,9 @@ void slip_generation()
     
         if (found) {
             printf("----------------------------------------------------------------------------------------\n");
-            printf("Total Fine for user %s = %d\n", member_id, total_fine);
+            printf("Total Fine for Member %s = %d\n", member_id, total_fine);
         } else {
-            printf("No records found for User ID: %s\n", member_id);
+            printf("No records found for Member ID: %s\n", member_id);
         }
     
         printf("\nDo you want to generate another (y/n): ");
@@ -94,7 +94,7 @@ void clear_fine_records()
     
     do
     {
-        printf("Enter User ID to clear fine: ");
+        printf("Enter Member ID to clear fine: ");
         fgets(member_id, sizeof(member_id), stdin);
         remove_newline(member_id);
     
@@ -140,12 +140,12 @@ void clear_fine_records()
         {
             remove("fine.csv");
             rename("temp.csv", "fine.csv");
-            printf("Fine cleared for User ID: %s\n", member_id);
+            printf("Fine cleared for Member ID: %s\n", member_id);
         }
         else
         {
             remove("temp.csv");
-            printf("No fine records found for User ID: %s\n", member_id);
+            printf("No fine records found for Member ID: %s\n", member_id);
         }
     
         printf("\nDo you want to clear another fine? (y/n): ");
@@ -160,7 +160,7 @@ void fine()
 {
     int choice;
     char cont;
-    printf("Welcome to the Fine Portal!\n");
+    printf("\n\n\t\t\t=== Welcome to the Fine Portal! ===\n\n");
         printf("Please select an option:\n");
         printf("1. Fine Slip\n");
         printf("2. Fine Clearance\n");
@@ -171,19 +171,21 @@ void fine()
         switch (choice)
         {
         case 1:
+            printf("\n\n\t\t\t=== Fine Slip Generation ===\n\n");
             slip_generation();
             break;
         case 2:
+            printf("\n\n\t\t\t=== Fine Clearance ===\n\n");
             clear_fine_records();
             break;
         case 3:
-            printf("Exiting Fine Portal.\n");
+            printf("Exiting Fine Portal.\n\n");
             return;
             break;
         default:
 
             printf("Invalid choice. Please try again.\n");
             break;
-        } // Clear newline character from input buffer
+        }
     printf("Thank you for using the Fine Portal!\n");
 }

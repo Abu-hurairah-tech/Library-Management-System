@@ -377,5 +377,6 @@ int issue()
 // Main menu: allows repeating the issue process
 void issue_books()
 {
+    printf("\n\n\t\t\t=== Issue Portal ===\n\n");
     issue(); // call issuing function
 }

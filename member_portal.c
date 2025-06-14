@@ -17,7 +17,7 @@ void static remove_newline(char *str)
 
 void displaymembermenu()
 {
-    printf("Membership portal");
+    printf("\n\n\t\t\t=== Membership portal ===\n\n");
     printf("\nOptions : ");
     printf("\n1. Add Member\n2. Search member\n3. Delete membership\n4. Exit\n");
 }
@@ -276,16 +276,19 @@ void manage_members()
             switch (option)
             {
             case 1:
+                printf("\n\n\t\t\t=== Adding Member ===\n\n");
                 member_addition();
                 break;
             case 2:
+                printf("\n\n\t\t\t=== Search Member ===\n\n");
                 search();
                 break;
             case 3:
+                printf("\n\n\t\t\t=== Delete Member ===\n\n");
                 delete();
                 break;
             case 4:
-                printf("Exiting...");
+                printf("Exiting...\n\n");
                 return; // Exit program
             default:
                 printf("Invalid choice. Please choose a valid option.\n");

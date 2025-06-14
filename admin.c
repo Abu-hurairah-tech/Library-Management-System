@@ -39,7 +39,7 @@ void register_user()
 {
     char username[12], password[12];
 
-    printf("=== Register ===\n");
+    printf("\n\n\t\t\t=== Register ===\n\n");
     printf("Enter new username: ");
     scanf("%s", username);
 
@@ -92,7 +92,7 @@ int login_user() {
     int attempts = 0;
 
     while (attempts < 3) {
-        printf("\n=== Login (Attempt %d of 3) ===\n", attempts + 1);
+        printf("\n\n\t\t\t=== Login (Attempt %d of 3) ===\n\n", attempts + 1);
         printf("Enter username: ");
         scanf("%s", input_un);
 
@@ -136,7 +136,7 @@ int admin()
     int login_check;
     int option;
 
-    printf("=== Welcome to the Login System ===\n");
+    printf("\n\n\t\t\t=== Welcome to the Login System ===\n\n");
     do
     {
         printf("1. Register\n");
@@ -181,7 +181,7 @@ int admin()
             break;
 
         case 3:
-            printf("Exiting admin panel...\n");
+            printf("Exiting admin panel...\n\n");
             return 1; // treat as failure to access library
 
         default:
