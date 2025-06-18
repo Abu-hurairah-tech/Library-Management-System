@@ -269,6 +269,18 @@ int issue()
             fflush(issue_file);
         }
 
+        FILE *history = fopen("history.csv", "a+");
+        if (!history)
+        {
+            printf("Unable to open history file.\n");
+            return 1;
+        }
+        fseek(history, 0, SEEK_END);
+        if (ftell(history) == 0)
+        {
+            fprintf(history, "Member ID,Book Title,Book Author,Book ID,Issue Date\n");
+        }
+
         FILE *temp = fopen("temp.csv", "w");
         if (!temp)
         {
@@ -330,6 +342,7 @@ int issue()
 
                         printf("Book issued to: %s, %s\n", name, user_id);
                         fprintf(issue_file, "%s,%s,%s,%s,%s\n", user_id, book_title, book_author, book_id, date_str);
+                        fprintf(history, "%s,%s,%s,%s,%s\n", user_id, book_title, book_author, book_id, date_str);
                         any_issue_done = 1; // Something was issued
                         break;
                     }
@@ -355,6 +368,7 @@ int issue()
         fclose(issue_file);
         fclose(member);
         fclose(temp);
+        fclose(history);
 
         // Update only if something was issued
         if (any_issue_done)
@@ -373,10 +387,81 @@ int issue()
 
     return 0;
 }
+void issue_history()
+{
+    char id[200];
+    char line[300];
+
+    FILE *history = fopen("history.csv", "r");
+    if (!history)
+    {
+        printf("No issue history found.\n");
+        return;
+    }
+
+    printf("Enter Member ID to view history: ");
+    scanf(" %199s", id);
+    remove_newLine(id);
+
+    fgets(line, sizeof(line), history); // skip header
+    int found = 0;
+
+    printf("\n=== Issue History for Member ID: %s ===\n", id);
+    printf("%-30s %-30s %-15s\n", "Title", "Author", "Issue Date");
+    printf("---------------------------------------------------------------\n");
+
+    while (fgets(line, sizeof(line), history))
+    {
+        char *member_id = strtok(line, ",");
+        char *title = strtok(NULL, ",");
+        char *author = strtok(NULL, ",");
+        char *book_id = strtok(NULL, ",");
+        char *date = strtok(NULL, ",");
+
+        if (member_id && strcmp(member_id, id) == 0)
+        {
+            remove_newLine(date);
+            printf("%-30s %-30s %-15s\n", title, author, date);
+            found = 1;
+        }
+    }
+
+    if (!found)
+    {
+        printf("No history found for Member ID %s.\n", id);
+    }
+
+    fclose(history);
+}
+
 
 // Main menu: allows repeating the issue process
 void issue_books()
 {
     printf("\n\n\t\t\t=== Issue Portal ===\n\n");
-    issue(); // call issuing function
+    int choice;
+    do
+    {
+        printf("1. Issue a book\n");
+        printf("2. View issue history\n");
+        printf("3. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+        clear_input_buffer();
+
+        switch (choice)
+        {
+            case 1:
+                issue();
+                break;
+            case 2:
+                issue_history(); // View issue history
+                break;
+            case 3:
+                printf("Exiting issue portal.\n");
+                return; // Exit the portal
+            default:
+                printf("Invalid choice, please try again.\n");
+        }
+    } while (choice != 3);
 }
