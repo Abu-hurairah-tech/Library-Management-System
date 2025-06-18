@@ -19,7 +19,7 @@ void displaymembermenu()
 {
     printf("\n\n\t\t\t=== Membership portal ===\n\n");
     printf("\nOptions : ");
-    printf("\n1. Add Member\n2. Search member\n3. Delete membership\n4. Exit\n");
+    printf("\n1. Add Member\n2. Search member\n3. Delete membership\n4. Display All Members\n5. Exit\n");
 }
 
 // Function to add new member details
@@ -252,6 +252,51 @@ int delete()
     } while (choice == 'y' || choice == 'Y');
 }
 
+void display_members()
+{
+    FILE *member = fopen("member.csv", "r");
+    char line[300];
+    int isEmpty = 1;
+
+    if (member == NULL)
+    {
+        printf("Unable to open file\n");
+        return;
+    }
+
+    printf("\n\n\t\t\t=== Member List ===\n\n");
+
+    // Print header
+    if (fgets(line, sizeof(line), member))
+    {
+        printf("%-20s %-10s %-15s %-10s %-15s\n", "Name", "ID", "Department", "Session", "Contact");
+        printf("--------------------------------------------------------------------------------\n");
+        isEmpty = 0;
+    }
+
+    while (fgets(line, sizeof(line), member))
+    {
+        char *name = strtok(line, ",");
+        char *id = strtok(NULL, ",");
+        char *dep = strtok(NULL, ",");
+        char *session = strtok(NULL, ",");
+        char *contact = strtok(NULL, ",\n");
+
+        if (name && id && dep && session && contact)
+        {
+            printf("%-20s %-10s %-15s %-10s %-15s\n", name, id, dep, session, contact);
+            isEmpty = 0;
+        }
+    }
+
+    if (isEmpty)
+    {
+        printf("No member records found.\n");
+    }
+
+    fclose(member);
+}
+
 void manage_members()
 {
     int option;
@@ -266,7 +311,7 @@ void manage_members()
         while (getchar() != '\n')
             ; // Clear input buffer
 
-        if (option < 1 || option > 4)
+        if (option < 1 || option > 5)
         {
             printf("Invalid option. Please choose a valid option.\n");
         }
@@ -288,11 +333,15 @@ void manage_members()
                 delete();
                 break;
             case 4:
+                printf("\n\n\t\t\t=== Display Members ===\n\n");
+                display_members();
+                break;
+            case 5:
                 printf("Exiting...\n\n");
                 return; // Exit program
             default:
                 printf("Invalid choice. Please choose a valid option.\n");
             }
         }
-    } while (option != 4);
+    } while (option != 5);
 }

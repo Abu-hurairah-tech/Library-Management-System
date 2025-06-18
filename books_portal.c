@@ -38,7 +38,8 @@ void displayMenu()
     printf("1. Add a book. \n");
     printf("2. Search a book. \n");
     printf("3. Delete a book. \n");
-    printf("4. Exit. \n");
+    printf("4. Display all books.\n");
+    printf("5. Exit. \n");
 }
 
 void loadBooksFromFile()
@@ -251,22 +252,22 @@ void searchBookByID()
 
     do
     {
-        while(1)
+        while (1)
         {
 
             found = 0;
             rewind(ptr);
             fgets(line, sizeof(line), ptr); // Skip header
-    
+
             printf("Enter book ID to search: ");
             fgets(searchID, MAX_ID_LENGTH, stdin);
             remove_newline(searchID);
-            if( strlen(searchID) == 0)
+            if (strlen(searchID) == 0)
             {
                 printf("\nID cannot be empty! Please try again.\n\n");
                 continue;
             }
-    
+
             while (fgets(line, sizeof(line), ptr))
             {
                 char *token = strtok(line, ",");
@@ -274,7 +275,7 @@ void searchBookByID()
                 {
                     title = strtok(NULL, ",");
                     author = strtok(NULL, ",\n");
-    
+
                     printf("\nBook found:\n");
                     printf("ID: %s\n", token);
                     printf("Title: %s\n", title);
@@ -283,7 +284,7 @@ void searchBookByID()
                     break;
                 }
             }
-    
+
             if (!found)
             {
                 printf("No book found with ID '%s'.\n", searchID);
@@ -297,6 +298,46 @@ void searchBookByID()
     } while (choice == 'y' || choice == 'Y');
 
     fclose(ptr);
+}
+
+void displayBooks()
+{
+    FILE *file = fopen("books.csv", "r");
+    char line[512];
+    int count = 0;
+
+    if (file == NULL)
+    {
+        printf("Could not open file!\n");
+        return;
+    }
+
+    fgets(line, sizeof(line), file); // Skip header
+
+    printf("\n\n\t\t\t=== Book List ===\n\n");
+    printf("%-10s | %-30s | %-20s\n", "Book ID", "Title", "Author");
+    printf("--------------------------------------------------------------\n");
+
+    while (fgets(line, sizeof(line), file))
+    {
+        char *id = strtok(line, ",");
+        char *title = strtok(NULL, ",");
+        char *author = strtok(NULL, ",\n");
+
+        if (id && title && author)
+        {
+            printf("%-10s | %-30s | %-20s\n", id, title, author);
+            count++;
+        }
+    }
+
+    if (count == 0)
+    {
+        printf("No books found.\n");
+    }
+
+    printf("\nTotal books: %d\n", count);
+    fclose(file);
 }
 
 void manage_books()
@@ -325,11 +366,15 @@ void manage_books()
             deleteBook();
             break;
         case 4:
+            printf("\n\n\t\t\t=== Display All Books ===\n\n");
+            displayBooks();
+            break;
+        case 5:
             printf("Exiting...\n\n");
             return;
         default:
             printf("\nInvalid choice. Please try again.\n");
             // scanf(" %c", &choice);
         }
-    } while (choice != 4);
+    } while (choice != 5);
 }
