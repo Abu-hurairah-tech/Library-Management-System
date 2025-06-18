@@ -108,7 +108,7 @@ void register_user_ncurses()
     mvprintw(3, 2, "Enter new username (ESC to cancel): ");
     int ch = get_username_ncurses(username, sizeof(username), 3, 40);
 
-    if(ch == 27) 
+    if (ch == 27)
     {
         int menu_start_y = 5;
         int note_row = menu_start_y + 2 + 2;
@@ -186,8 +186,6 @@ int login_user_ncurses()
         attron(COLOR_PAIR(1) | A_BOLD);
         mvprintw(1, start_col, "%s", login_msg);
         attroff(COLOR_PAIR(1) | A_BOLD);
-        mvprintw(3, 2, "Username: ");
-        echo();
         mvprintw(3, 2, "Enter new username (ESC to cancel): ");
         int ch = getch();
         if (ch == 27)
@@ -211,15 +209,14 @@ int login_user_ncurses()
             return 0; // Enter pressed without input (optional guard)
         else
         {
-            char first_char[2] = {ch, '\0'};
             echo();
-            getnstr(input_un + 1, sizeof(input_un) - 2); // Read rest
-            input_un[0] = ch;
+            move(3, 38); // Move to the position where input should start
+            getnstr(input_un, sizeof(input_un) - 1);
         }
         // getstr(input_un);
         mvprintw(4, 2, "Password: ");
         get_password_ncurses(input_pass, sizeof(input_pass), 4, 12);
-        
+
         FILE *fptr = fopen("loginfile.csv", "r");
         if (fptr == NULL)
         {

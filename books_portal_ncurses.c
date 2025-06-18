@@ -4,12 +4,13 @@
 #include <stdlib.h>
 #include "books.h"
 
-#define BOOK_MENU_OPTIONS 4
+#define BOOK_MENU_OPTIONS 5
 
 static const char *book_menu_items[BOOK_MENU_OPTIONS] = {
     "Add Book",
     "Search Book",
     "Delete Book",
+    "Display Books",
     "Exit"};
 
 // Utility to remove newline from fgets input
@@ -360,6 +361,96 @@ int book_delete()
     return 0;
 }
 
+void display_books()
+{
+    FILE *file = fopen("books.csv", "r");
+    if (file == NULL)
+    {
+        clear();
+        mvprintw(2, 2, "Could not open file!");
+        getch();
+        return;
+    }
+
+    int max_y, max_x;
+    getmaxyx(stdscr, max_y, max_x);
+    clear();
+    box(stdscr, 0, 0);
+
+    const char *header = "=== Book List ===";
+    int start_col = (max_x - strlen(header)) / 2;
+    attron(COLOR_PAIR(1) | A_BOLD);
+    mvprintw(1, start_col, "%s", header);
+    attroff(COLOR_PAIR(1) | A_BOLD);
+
+    int row = 4, col = 4, count = 0;
+    char line[512];
+
+    // Print column headers
+    attron(A_BOLD | COLOR_PAIR(3));
+    mvprintw(row++, col, "%-10s | %-30s | %-20s", "Book ID", "Title", "Author");
+    attroff(A_BOLD | COLOR_PAIR(3));
+    mvhline(row++, col, '-', 65);
+
+    fgets(line, sizeof(line), file); // Skip header
+
+    while (fgets(line, sizeof(line), file))
+    {
+        // Remove newline at end
+        line[strcspn(line, "\n")] = '\0';
+
+        // Parse the line safely
+        char id[64] = "", title[256] = "", author[128] = "";
+        char *first = strchr(line, ',');
+        char *second = first ? strchr(first + 1, ',') : NULL;
+
+        if (first && second)
+        {
+            size_t id_len = first - line;
+            size_t title_len = second - first - 1;
+            strncpy(id, line, id_len);
+            id[id_len] = '\0';
+            strncpy(title, first + 1, title_len);
+            title[title_len] = '\0';
+            strncpy(author, second + 1, sizeof(author) - 1);
+            author[sizeof(author) - 1] = '\0';
+
+            mvprintw(row++, col, "%-10s | %-30s | %-20s", id, title, author);
+            count++;
+        }
+
+        // Pagination if too many rows
+        if (row >= max_y - 3)
+        {
+            mvprintw(row, col, "-- Press any key to continue --");
+            getch();
+            clear();
+            box(stdscr, 0, 0);
+            attron(COLOR_PAIR(1) | A_BOLD);
+            mvprintw(1, start_col, "%s", header);
+            attroff(COLOR_PAIR(1) | A_BOLD);
+            row = 4;
+            attron(A_BOLD | COLOR_PAIR(3));
+            mvprintw(row++, col, "%-10s | %-30s | %-20s", "Book ID", "Title", "Author");
+            attroff(A_BOLD | COLOR_PAIR(3));
+            mvhline(row++, col, '-', 65);
+        }
+    }
+
+    if (count == 0)
+    {
+        mvprintw(row + 1, col, "No books found.");
+    }
+    else
+    {
+        mvprintw(row + 2, col, "Total books: %d", count);
+    }
+
+    mvprintw(row + 4, col, "Press any key to return...");
+    getch();
+    fclose(file);
+}
+
 // Main Book Portal Menu
 void manage_books()
 {
@@ -457,6 +548,9 @@ void manage_books()
                 book_delete();
                 break;
             case 3:
+                display_books();
+                break;
+            case 4:
                 mvprintw(note_row + 1, 4, "Exiting");
                 refresh();
                 for (int i = 0; i < 3; ++i)

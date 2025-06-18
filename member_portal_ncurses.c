@@ -3,12 +3,13 @@
 #include <string.h>
 #include "members.h"
 #include <stdlib.h>
-#define MEMBER_MENU_OPTIONS 4
+#define MEMBER_MENU_OPTIONS 5
 
 static const char *member_menu_items[MEMBER_MENU_OPTIONS] = {
     "Add Member",
     "Search Member",
     "Delete Membership",
+    "Display All Members",
     "Exit"};
 
 // Removes newline character from string (usually from fgets input)
@@ -392,6 +393,96 @@ int delete()
     return 0;
 }
 
+void display_members()
+{
+    FILE *member = fopen("member.csv", "r");
+    if (member == NULL)
+    {
+        clear();
+        mvprintw(2, 2, "Unable to open file");
+        getch();
+        return;
+    }
+
+    int max_y, max_x;
+    getmaxyx(stdscr, max_y, max_x);
+    clear();
+    box(stdscr, 0, 0);
+
+    const char *header = "=== Member List ===";
+    int start_col = (max_x - strlen(header)) / 2;
+    attron(COLOR_PAIR(1) | A_BOLD);
+    mvprintw(1, start_col, "%s", header);
+    attroff(COLOR_PAIR(1) | A_BOLD);
+
+    int row = 4, col = 4, count = 0;
+    char line[300];
+
+    // Print column headers
+    attron(A_BOLD | COLOR_PAIR(3));
+    mvprintw(row++, col, "%-20s %-10s %-15s %-10s %-15s", "Name", "ID", "Department", "Session", "Contact");
+    attroff(A_BOLD | COLOR_PAIR(3));
+    mvhline(row++, col, '-', 80);
+
+    // Skip header
+    if (!fgets(line, sizeof(line), member))
+    {
+        mvprintw(row, col, "No member records found.");
+        fclose(member);
+        mvprintw(row + 2, col, "Press any key to return...");
+        getch();
+        return;
+    }
+
+    while (fgets(line, sizeof(line), member))
+    {
+        // Remove newline at end
+        line[strcspn(line, "\n")] = '\0';
+
+        char *name = strtok(line, ",");
+        char *id = strtok(NULL, ",");
+        char *dep = strtok(NULL, ",");
+        char *session = strtok(NULL, ",");
+        char *contact = strtok(NULL, ",\n");
+
+        if (name && id && dep && session && contact)
+        {
+            mvprintw(row++, col, "%-20s %-10s %-15s %-10s %-15s", name, id, dep, session, contact);
+            count++;
+        }
+
+        // Pagination if too many rows
+        if (row >= max_y - 3)
+        {
+            mvprintw(row, col, "-- Press any key to continue --");
+            getch();
+            clear();
+            box(stdscr, 0, 0);
+            attron(COLOR_PAIR(1) | A_BOLD);
+            mvprintw(1, start_col, "%s", header);
+            attroff(COLOR_PAIR(1) | A_BOLD);
+            row = 4;
+            attron(A_BOLD | COLOR_PAIR(3));
+            mvprintw(row++, col, "%-20s %-10s %-15s %-10s %-15s", "Name", "ID", "Department", "Session", "Contact");
+            attroff(A_BOLD | COLOR_PAIR(3));
+            mvhline(row++, col, '-', 80);
+        }
+    }
+
+    if (count == 0)
+    {
+        mvprintw(row + 1, col, "No member records found.");
+    }
+    else
+    {
+        mvprintw(row + 2, col, "Total members: %d", count);
+    }
+
+    mvprintw(row + 4, col, "Press any key to return...");
+    getch();
+    fclose(member);
+}
+
 void manage_members()
 {
     initscr();
@@ -489,6 +580,9 @@ void manage_members()
                 delete();
                 break;
             case 3:
+                display_members();
+                break;
+            case 4:
                 mvprintw(note_row + 1, 4, "Exiting");
                 refresh();
                 for (int i = 0; i < 3; ++i)
